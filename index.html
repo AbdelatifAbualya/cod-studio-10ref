@@ -613,7 +613,7 @@
     /***********************
      * Global Configuration
      ***********************/
-    const FIREWORKS_MODEL = "accounts/fireworks/models/deepseek-v3-0324";
+    const FIREWORKS_MODEL = "accounts/fireworks/models/deepseek-v3";
 
     let PROMPTS = {
       standard: "",
@@ -1327,10 +1327,14 @@
           max_tokens: validatedMaxTokens, 
           presence_penalty: PRESENCE_PENALTY, 
           frequency_penalty: FREQUENCY_PENALTY, 
-          stream: effectiveStreaming,
-          enhanced_cod_mode: ENHANCED_COD_MODE,
-          reasoning_method: REASONING_METHOD
+          stream: effectiveStreaming
         };
+
+        // Add enhanced CoD parameters only for our custom handling
+        if (ENHANCED_COD_MODE) {
+          payload.enhanced_cod_mode = true;
+          payload.reasoning_method = REASONING_METHOD;
+        }
         
         if (tools && tools.length > 0) { 
           payload.tools = tools; 
