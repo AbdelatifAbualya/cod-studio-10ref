@@ -1,4 +1,7 @@
 module.exports = async (req, res) => {
+  // Model configuration
+  const FIREWORKS_MODEL = "accounts/fireworks/models/deepseek-v3-0324";
+  
   // Handle CORS for all requests
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -64,7 +67,7 @@ module.exports = async (req, res) => {
     if (enhanced_cod_mode && reasoning_method === "cod") {
       return await handleEnhancedCoD(req, res, {
         apiKey,
-        model,
+        model: FIREWORKS_MODEL, // Use the constant model name
         messages,
         temperature,
         top_p,
@@ -81,7 +84,7 @@ module.exports = async (req, res) => {
     // Standard single API call (existing functionality)
     return await handleStandardRequest(req, res, {
       apiKey,
-      model,
+      model: FIREWORKS_MODEL, // Use the constant model name
       messages,
       temperature,
       top_p,
