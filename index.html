@@ -1,10 +1,9 @@
-<!-- FILE: index.html -->
 <!DOCTYPE html>
 <html lang="en" class="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Enhanced AI Reasoning Studio (Chain of Draft)</title>
+  <title>Enhanced AI Reasoning Studio (DeepSeek V3)</title>
   
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -49,6 +48,18 @@
               700: '#111827',
               800: '#0d1117',
               900: '#030712',
+            },
+            enhanced: {
+              50: '#f0f9ff',
+              100: '#e0f2fe',
+              200: '#bae6fd',
+              300: '#7dd3fc',
+              400: '#38bdf8',
+              500: '#0ea5e9',
+              600: '#0284c7',
+              700: '#0369a1',
+              800: '#075985',
+              900: '#0c4a6e',
             }
           },
           fontFamily: {
@@ -65,6 +76,8 @@
     :root {
       --primary: #5686f5;
       --primary-hover: #4169e1;
+      --enhanced: #0ea5e9;
+      --enhanced-hover: #0284c7;
       --success: #10b981;
       --warning: #f59e0b;
       --error: #ef4444;
@@ -90,49 +103,49 @@
       background: rgba(86, 134, 245, 0.8);
     }
 
-    /* Enhanced Animation Styles */
+    /* Enhanced CoD Animations */
+    @keyframes enhancedPulse {
+      0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.7); }
+      70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(14, 165, 233, 0); }
+      100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(14, 165, 233, 0); }
+    }
+    
+    .enhanced-mode .enhanced-indicator {
+      animation: enhancedPulse 2s infinite;
+    }
+
+    /* Thinking Steps Animation */
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
     }
     
-    @keyframes slideInLeft {
-      from { opacity: 0; transform: translateX(-20px); }
-      to { opacity: 1; transform: translateX(0); }
+    .thinking-steps {
+      animation: fadeIn 0.3s ease;
+    }
+    .thinking-step, .detailed-reflection-step, .reflection-step, .verification-step {
+      animation: fadeIn 0.3s ease;
     }
     
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.7; }
+    /* Enhanced Stage Animation */
+    @keyframes stageTransition {
+      0% { opacity: 0; transform: translateX(-20px); }
+      100% { opacity: 1; transform: translateX(0); }
     }
     
+    .stage-transition {
+      animation: stageTransition 0.5s ease;
+    }
+    
+    /* Reflection Step Animation */
     @keyframes reflectionPulse {
-      0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
-      70% { transform: scale(1.02); box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); }
-      100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
     }
     
-    .problem-analysis {
-      animation: fadeIn 0.5s ease;
-      border-left: 4px solid #f59e0b;
-    }
-    
-    .cod-step {
-      animation: slideInLeft 0.3s ease;
-    }
-    
-    .reflection-box {
+    .reflection-step .step-number {
       animation: reflectionPulse 2s infinite;
-    }
-    
-    .meta-reflection {
-      animation: fadeIn 0.6s ease;
-      background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
-    }
-    
-    .final-answer {
-      animation: fadeIn 0.7s ease;
-      background: linear-gradient(135deg, #065f46 0%, #047857 100%);
     }
     
     /* Streaming Indicator Animation */
@@ -181,10 +194,20 @@
       margin-top: -6px;
     }
 
-    /* Progress bar for CoD steps */
-    .progress-bar {
-      background: linear-gradient(90deg, #3b82f6, #8b5cf6);
-      animation: pulse 1.5s infinite;
+    /* Enhanced Mode Styling */
+    .enhanced-mode {
+      background: linear-gradient(135deg, rgba(14, 165, 233, 0.1) 0%, rgba(79, 70, 229, 0.1) 100%);
+      border: 1px solid rgba(14, 165, 233, 0.3);
+    }
+
+    .stage-badge {
+      background: linear-gradient(135deg, #0ea5e9, #3b82f6);
+      box-shadow: 0 4px 14px 0 rgba(14, 165, 233, 0.39);
+    }
+
+    .verification-section {
+      background: linear-gradient(135deg, rgba(6, 182, 212, 0.1) 0%, rgba(14, 165, 233, 0.1) 100%);
+      border-left: 4px solid #06b6d4;
     }
   </style>
 </head>
@@ -221,7 +244,7 @@
       <div class="w-full h-full flex flex-col">
         <div class="flex justify-between items-center p-4 border-b border-dark-600">
           <h2 class="text-xl font-semibold">Threads</h2>
-          <button id="closeMobileSidebar" class="p-2">
+          <button id="closeMobileSidebar" class="p-2" aria-label="Close menu">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
             </svg>
@@ -250,10 +273,14 @@
     <div class="flex-1 flex flex-col overflow-hidden">
       <!-- Header -->
       <header class="bg-dark-700 border-b border-dark-600 h-16 flex items-center justify-between px-4 md:px-6">
-        <h1 id="pageTitle" class="text-xl font-semibold">Enhanced AI Reasoning Studio (Chain of Draft)</h1>
+        <h1 id="pageTitle" class="text-xl font-semibold">Enhanced AI Reasoning Studio (DeepSeek V3)</h1>
         <div class="flex items-center gap-3">
+          <div id="enhancedModeIndicator" class="bg-dark-600 text-sm px-3 py-1.5 rounded-lg flex items-center enhanced-indicator">
+            <div id="enhancedModeIcon" class="w-2 h-2 rounded-full bg-gray-500 mr-2"></div>
+            <span id="enhancedModeText">Standard Mode</span>
+          </div>
           <div id="currentModelDisplay" class="bg-dark-600 text-sm px-3 py-1.5 rounded-lg flex items-center">
-            <span>Qwen3-235B (Enhanced CoD)</span>
+            <span>DeepSeek V3-0324 (Fireworks AI)</span>
           </div>
           <button id="openSettings" class="flex items-center gap-1.5 bg-dark-600 hover:bg-dark-500 text-gray-300 px-3 py-1.5 rounded-lg transition">
             <span>Settings</span>
@@ -270,9 +297,9 @@
 
       <!-- Input Area -->
       <div class="p-4 border-t border-dark-600 bg-dark-700">
-        <div class="flex items-start gap-3 rounded-xl bg-dark-600 p-3 shadow-lg border border-dark-500 focus-within:border-primary-500 transition">
+        <div class="flex items-start gap-3 rounded-xl bg-dark-600 p-3 shadow-lg border border-dark-500 focus-within:border-primary-500 transition" id="inputContainer">
           <div class="flex-1">
-            <textarea id="userInput" rows="1" class="w-full bg-dark-700 text-gray-100 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none text-base" placeholder="Type your math, code, or logic problem..."></textarea>
+            <textarea id="userInput" rows="1" class="w-full bg-dark-700 text-gray-100 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none text-base" placeholder="Type your message..."></textarea>
           </div>
           <div class="flex flex-col gap-2 mt-1">
             <button id="sendBtn" class="bg-primary-500 hover:bg-primary-600 text-white p-3 rounded-lg transition">
@@ -290,6 +317,11 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
               </svg>
             </button>
+            <button id="enhancedModeBtn" class="bg-enhanced-500 hover:bg-enhanced-600 text-white p-2 rounded-lg transition enhanced-indicator" title="Toggle Enhanced CoD Mode">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+              </svg>
+            </button>
           </div>
         </div>
         <input type="file" id="fileInput" class="hidden" multiple>
@@ -303,10 +335,10 @@
 
   <!-- Settings Modal -->
   <div id="settingsModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 hidden">
-    <div class="bg-dark-700 rounded-xl shadow-2xl max-w-3xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+    <div class="bg-dark-700 rounded-xl shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
       <div class="p-5 border-b border-dark-600 flex justify-between items-center">
-        <h2 class="text-xl font-semibold">Enhanced Chain of Draft Settings</h2>
-        <button id="closeModalX" class="text-gray-400 hover:text-white">
+        <h2 class="text-xl font-semibold">Enhanced Reasoning Settings</h2>
+        <button id="closeModalX" class="text-gray-400 hover:text-white" aria-label="Close settings">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
           </svg>
@@ -316,111 +348,147 @@
       <div class="p-5">
         <!-- Tab Navigation -->
         <div class="bg-dark-600 rounded-lg p-1 flex mb-5">
-          <button class="tab-btn flex-1 py-2 px-4 rounded-md text-white bg-primary-500" data-tab="reasoningTab">CoD Config</button>
-          <button class="tab-btn flex-1 py-2 px-4 rounded-md text-gray-400 transition" data-tab="parametersTab">Parameters</button>
+          <button class="tab-btn flex-1 py-2 px-4 rounded-md text-gray-400 transition" data-tab="enhancedTab">Enhanced CoD</button>
+          <button class="tab-btn flex-1 py-2 px-4 rounded-md text-gray-400 transition" data-tab="reasoningTab">Reasoning</button>
+          <button class="tab-btn flex-1 py-2 px-4 rounded-md text-white bg-primary-500" data-tab="parametersTab">Parameters</button>
           <button class="tab-btn flex-1 py-2 px-4 rounded-md text-gray-400 transition" data-tab="toolsTab">Tools</button>
         </div>
         
-        <!-- Enhanced Reasoning Tab Content -->
-        <div id="reasoningTab" class="tab-content">
-          <h3 class="text-lg font-medium mb-4 pb-2 border-b border-dark-600">Enhanced Chain of Draft Configuration</h3>
+        <!-- Enhanced CoD Tab Content -->
+        <div id="enhancedTab" class="tab-content hidden">
+          <h3 class="text-lg font-medium mb-4 pb-2 border-b border-dark-600">Enhanced Chain of Draft Settings</h3>
           
-          <!-- Problem Detection Settings -->
-          <div class="bg-gradient-to-r from-blue-900/20 to-purple-900/20 border border-blue-700/30 rounded-lg p-4 mb-5">
-            <h4 class="text-sm font-medium text-blue-300 mb-3 flex items-center">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
-              </svg>
-              Intelligent Problem Detection
-            </h4>
-            <div class="space-y-3">
-              <div class="flex items-start">
-                <input type="checkbox" id="enableProblemDetection" checked class="w-4 h-4 mt-1 text-primary-500 bg-dark-500 border-dark-400 focus:ring-primary-500 focus:ring-offset-dark-700">
-                <label for="enableProblemDetection" class="ml-3 block text-sm text-white">
-                  Auto-detect complex problems (math, code, logic)
-                  <div class="text-gray-400 text-xs mt-1">Automatically triggers enhanced CoD reasoning for challenging problems</div>
-                </label>
+          <div class="bg-enhanced-900/20 border border-enhanced-500/30 rounded-lg p-4 mb-5">
+            <div class="flex items-center justify-between mb-4">
+              <label for="enhancedCoDToggle" class="flex items-center cursor-pointer">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3 text-enhanced-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                </svg>
+                <div>
+                  <div class="font-medium text-sm">Enable Enhanced CoD Mode</div>
+                  <div class="text-gray-400 text-xs mt-0.5">Two-stage reasoning with verification and refinement</div>
+                </div>
+              </label>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="enhancedCoDToggle" class="sr-only peer" title="Enable Enhanced CoD Mode">
+                <div class="w-11 h-6 bg-dark-500 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-enhanced-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-enhanced-600"></div>
+              </label>
+            </div>
+            
+            <div class="bg-dark-700 rounded-lg p-4">
+              <div class="flex items-center text-enhanced-300 text-sm font-medium mb-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                How Enhanced CoD Works
+              </div>
+              <div class="text-gray-400 text-xs">
+                Enhanced Chain of Draft uses a revolutionary two-stage API approach:
+                <ul class="list-disc list-inside mt-2 space-y-1">
+                  <li><strong>Stage 1:</strong> Initial CoD reasoning with deep analytical reflections</li>
+                  <li><strong>Stage 2:</strong> Critical verification, quality assessment, and answer refinement</li>
+                  <li><strong>Result:</strong> Higher accuracy through systematic verification and enhancement</li>
+                  <li><strong>Cost:</strong> ~2x API calls but significantly improved reasoning quality</li>
+                </ul>
               </div>
             </div>
           </div>
           
-          <!-- CoD Words Per Step Slider -->
-          <div class="mb-5">
-            <div class="flex justify-between items-center mb-2">
-              <label for="codWordsPerStep" class="block text-sm font-medium text-gray-300">CoD Words Per Step</label>
-              <span id="codWordsPerStepValue" class="text-sm text-primary-400 font-semibold">5</span>
+          <div class="bg-dark-600 border border-dark-500 rounded-lg p-4">
+            <h4 class="text-sm font-medium text-gray-300 mb-3">Stage Configuration:</h4>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="bg-dark-700 rounded-lg p-3">
+                <div class="text-sm font-medium text-enhanced-300 mb-2">Stage 1: Deep Analysis</div>
+                <ul class="text-xs text-gray-400 space-y-1">
+                  <li>• Concise CoD steps (8-15 words)</li>
+                  <li>• 3 deep analytical reflections</li>
+                  <li>• Comprehensive preliminary answer</li>
+                </ul>
+              </div>
+              
+              <div class="bg-dark-700 rounded-lg p-3">
+                <div class="text-sm font-medium text-enhanced-300 mb-2">Stage 2: Verification</div>
+                <ul class="text-xs text-gray-400 space-y-1">
+                  <li>• Critical accuracy verification</li>
+                  <li>• Quality assessment & refinement</li>
+                  <li>• Enhanced final answer</li>
+                </ul>
+              </div>
             </div>
-            <input type="range" id="codWordsPerStep" min="5" max="15" step="1" value="5" class="w-full h-2 rounded-lg appearance-none cursor-pointer">
-            <div class="flex justify-between text-xs text-gray-500 mt-1">
-              <span>5 words (Paper default)</span>
-              <span>15 words (More detailed)</span>
-            </div>
-            <p class="text-xs text-gray-500 mt-2">Based on the Chain of Draft paper: limits each reasoning step to this many words maximum</p>
           </div>
+        </div>
+        
+        <!-- Reasoning Tab Content -->
+        <div id="reasoningTab" class="tab-content hidden">
+          <h3 class="text-lg font-medium mb-4 pb-2 border-b border-dark-600">Reasoning Method</h3>
           
-          <!-- Enhanced Reasoning Structure -->
           <div class="bg-dark-600 border border-dark-500 rounded-lg p-4 mb-5">
-            <h4 class="text-sm font-medium text-gray-300 mb-3">Enhanced Reasoning Structure</h4>
             <div class="space-y-3">
               <div class="flex items-start">
-                <input type="checkbox" id="enableDetailedAnalysis" checked class="w-4 h-4 mt-1 text-primary-500 bg-dark-500 border-dark-400 focus:ring-primary-500 focus:ring-offset-dark-700">
-                <label for="enableDetailedAnalysis" class="ml-3 block text-sm text-white">
-                  Detailed Problem Analysis Phase
-                  <div class="text-gray-400 text-xs mt-1">Analyze problem type and break into parts before CoD reasoning</div>
+                <label for="standardReasoning" class="flex items-start text-sm font-medium text-white cursor-pointer">
+                  <input type="radio" id="standardReasoning" name="reasoningMethod" value="standard" class="w-4 h-4 mt-1 text-primary-500 bg-dark-500 border-dark-400 focus:ring-primary-500 focus:ring-offset-dark-700">
+                  <span class="ml-3">
+                    Standard (No special prompt)
+                    <div class="text-gray-400 text-xs mt-1">Default model behavior with no special reasoning instructions.</div>
+                  </span>
                 </label>
               </div>
+              
               <div class="flex items-start">
-                <input type="checkbox" id="enablePartReflections" checked class="w-4 h-4 mt-1 text-primary-500 bg-dark-500 border-dark-400 focus:ring-primary-500 focus:ring-offset-dark-700">
-                <label for="enablePartReflections" class="ml-3 block text-sm text-white">
-                  Detailed Reflections After Each Part
-                  <div class="text-gray-400 text-xs mt-1">Create comprehensive reflections after completing each problem part</div>
-                </label>
-              </div>
-              <div class="flex items-start">
-                <input type="checkbox" id="enableMetaReflection" checked class="w-4 h-4 mt-1 text-primary-500 bg-dark-500 border-dark-400 focus:ring-primary-500 focus:ring-offset-dark-700">
-                <label for="enableMetaReflection" class="ml-3 block text-sm text-white">
-                  Meta-Reflection on All Reflections
-                  <div class="text-gray-400 text-xs mt-1">Analyze all part reflections to spot insights, mistakes, and improvements</div>
+                <label for="codReasoning" class="flex items-start text-sm font-medium text-white cursor-pointer">
+                  <input type="radio" id="codReasoning" name="reasoningMethod" value="cod" checked class="w-4 h-4 mt-1 text-primary-500 bg-dark-500 border-dark-400 focus:ring-primary-500 focus:ring-offset-dark-700">
+                  <span class="ml-3">
+                    Chain of Draft (CoD) with Deep Reflections
+                    <div class="text-gray-400 text-xs mt-1">Uses concise CoD steps with 3 detailed reflections and comprehensive final answer.</div>
+                  </span>
                 </label>
               </div>
             </div>
           </div>
           
-          <!-- Reasoning Flow Visualization -->
-          <div class="bg-dark-700 rounded-lg p-4 mt-6">
-            <div class="flex items-center text-blue-300 text-sm font-medium mb-3">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-              </svg>
-              Enhanced CoD Reasoning Flow
+          <div id="codOptions" class="mb-5">
+            <h4 class="text-sm font-medium text-gray-300 mb-3">Chain of Draft Configuration:</h4>
+            
+            <!-- CoD Word Count Slider -->
+            <div class="bg-dark-600 border border-dark-500 rounded-lg p-4 mb-4">
+              <div class="flex justify-between items-center mb-2">
+                <label for="codWordCount" class="block text-sm font-medium text-gray-300">CoD Step Word Count</label>
+                <span id="codWordCountValue" class="text-sm text-primary-400 font-medium">12</span>
+              </div>
+              <input type="range" id="codWordCount" min="8" max="20" step="1" value="12" class="w-full h-2 rounded-lg appearance-none cursor-pointer mb-2">
+              <p class="text-xs text-gray-400">Controls how many words each Chain of Draft step should target (8-20 words).</p>
             </div>
-            <div class="text-gray-400 text-xs space-y-2">
-              <div class="flex items-center space-x-2">
-                <div class="w-6 h-6 bg-amber-600 rounded-full flex items-center justify-center text-xs font-bold">1</div>
-                <span><strong>Problem Analysis:</strong> Detailed analysis and breakdown into parts (not using CoD)</span>
-              </div>
-              <div class="flex items-center space-x-2">
-                <div class="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center text-xs font-bold">2</div>
-                <span><strong>CoD Reasoning:</strong> Apply Chain of Draft to each part (5-15 words per step)</span>
-              </div>
-              <div class="flex items-center space-x-2">
-                <div class="w-6 h-6 bg-purple-600 rounded-full flex items-center justify-center text-xs font-bold">3</div>
-                <span><strong>Part Reflections:</strong> Detailed reflection after each part completion</span>
-              </div>
-              <div class="flex items-center space-x-2">
-                <div class="w-6 h-6 bg-indigo-600 rounded-full flex items-center justify-center text-xs font-bold">4</div>
-                <span><strong>Meta-Reflection:</strong> Analyze all reflections for insights and improvements</span>
-              </div>
-              <div class="flex items-center space-x-2">
-                <div class="w-6 h-6 bg-green-600 rounded-full flex items-center justify-center text-xs font-bold">5</div>
-                <span><strong>Final Answer:</strong> Comprehensive answer with detailed explanations</span>
-              </div>
+            
+            <div class="bg-dark-600 border border-dark-500 rounded-lg p-3">
+                <p class="text-xs text-gray-400">
+                    Chain of Draft (CoD) is configured to instruct the model to:
+                    <ul class="list-disc list-inside ml-4 mt-1">
+                        <li>Use concise CoD steps (target word count adjustable above).</li>
+                        <li>Insert 3 "DEEP REFLECTION X:" blocks during thinking (comprehensive analysis).</li>
+                        <li>Provide a detailed final answer with high accuracy.</li>
+                    </ul>
+                </p>
             </div>
+          </div>
+          
+          <div class="flex justify-between items-center mb-4 pb-2 border-b border-dark-600">
+            <label for="selfReflectionToggle" class="text-lg font-medium cursor-pointer">Enable Final Brief Self-Reflection</label>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="selfReflectionToggle" class="sr-only peer" checked title="Toggle final brief self-reflection">
+              <div class="w-11 h-6 bg-dark-500 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
+            </label>
+          </div>
+          
+          <div id="selfReflectionInfo" class="bg-dark-600 border border-dark-500 rounded-lg p-4 mb-5">
+            <p class="text-gray-400 text-sm mb-3">
+              If enabled, adds a brief final self-check reflection before the final answer. This complements the three deep reflections.
+            </p>
           </div>
         </div>
         
         <!-- Parameters Tab Content -->
-        <div id="parametersTab" class="tab-content hidden">
+        <div id="parametersTab" class="tab-content">
           <h3 class="text-lg font-medium mb-4 pb-2 border-b border-dark-600">Generation Parameters</h3>
           
           <div class="flex items-center justify-between mb-5 bg-dark-600 rounded-lg p-3 border border-dark-500">
@@ -430,11 +498,11 @@
               </svg>
               <div>
                 <div class="font-medium text-sm">Enable Streaming Responses</div>
-                <div class="text-gray-400 text-xs mt-0.5">See enhanced CoD reasoning appear in real-time</div>
+                <div class="text-gray-400 text-xs mt-0.5">See responses appear in real-time (disabled for Enhanced CoD)</div>
               </div>
             </label>
             <label class="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" id="streamingToggle" class="sr-only peer" checked>
+              <input type="checkbox" id="streamingToggle" class="sr-only peer" checked title="Enable or disable streaming responses">
               <div class="w-11 h-6 bg-dark-500 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
             </label>
           </div>
@@ -445,7 +513,7 @@
               <span id="tempValue" class="text-sm text-gray-400">0.6</span>
             </div>
             <input type="range" id="temp" min="0" max="2" step="0.01" value="0.6" class="w-full h-2 rounded-lg appearance-none cursor-pointer">
-            <p class="text-xs text-gray-500 mt-1">Controls randomness: lower values make responses more focused.</p>
+            <p class="text-xs text-gray-500 mt-1">Controls randomness: lower values make responses more focused. (Fireworks default: 0.6)</p>
           </div>
           
           <div class="mb-4">
@@ -454,7 +522,7 @@
               <span id="topPValue" class="text-sm text-gray-400">1</span>
             </div>
             <input type="range" id="topP" min="0" max="1" step="0.01" value="1" class="w-full h-2 rounded-lg appearance-none cursor-pointer">
-            <p class="text-xs text-gray-500 mt-1">Controls diversity via nucleus sampling.</p>
+            <p class="text-xs text-gray-500 mt-1">Controls diversity via nucleus sampling. (Fireworks default: 1)</p>
           </div>
 
           <div class="mb-4">
@@ -463,16 +531,34 @@
               <span id="topKValue" class="text-sm text-gray-400">40</span>
             </div>
             <input type="range" id="topK" min="0" max="100" step="1" value="40" class="w-full h-2 rounded-lg appearance-none cursor-pointer">
-            <p class="text-xs text-gray-500 mt-1">Restricts selection to the K most likely tokens.</p>
+            <p class="text-xs text-gray-500 mt-1">Restricts selection to the K most likely tokens. (Fireworks default: 40, 0 means disabled)</p>
+          </div>
+          
+          <div class="mb-4">
+            <div class="flex justify-between items-center mb-2">
+              <label for="presencePenalty" class="block text-sm font-medium text-gray-300">Presence Penalty</label>
+              <span id="presencePenaltyValue" class="text-sm text-gray-400">0</span>
+            </div>
+            <input type="range" id="presencePenalty" min="-2" max="2" step="0.01" value="0" class="w-full h-2 rounded-lg appearance-none cursor-pointer">
+            <p class="text-xs text-gray-500 mt-1">Reduces repetition of similar tokens.</p>
+          </div>
+          
+          <div class="mb-4">
+            <div class="flex justify-between items-center mb-2">
+              <label for="frequencyPenalty" class="block text-sm font-medium text-gray-300">Frequency Penalty</label>
+              <span id="frequencyPenaltyValue" class="text-sm text-gray-400">0</span>
+            </div>
+            <input type="range" id="frequencyPenalty" min="-2" max="2" step="0.01" value="0" class="w-full h-2 rounded-lg appearance-none cursor-pointer">
+            <p class="text-xs text-gray-500 mt-1">Reduces repetition based on frequency.</p>
           </div>
           
           <div class="mb-4">
             <div class="flex justify-between items-center mb-2">
               <label for="maxTokens" class="block text-sm font-medium text-gray-300">Max Tokens</label>
-              <span id="maxTokensValue" class="text-sm text-gray-400">12000</span>
+              <span id="maxTokensValue" class="text-sm text-gray-400">8192</span>
             </div>
-            <input type="range" id="maxTokens" min="1" max="30000" step="128" value="12000" class="w-full h-2 rounded-lg appearance-none cursor-pointer">
-            <p class="text-xs text-gray-500 mt-1">Maximum length of the response (increased for enhanced reasoning).</p>
+            <input type="range" id="maxTokens" min="1" max="16384" step="128" value="8192" class="w-full h-2 rounded-lg appearance-none cursor-pointer">
+            <p class="text-xs text-gray-500 mt-1">Maximum length of the response. (DeepSeek V3 supports large context)</p>
           </div>
         </div>
         
@@ -486,8 +572,26 @@
                 <input type="checkbox" id="tavilySearchTool" name="mcp_tools" value="tavily_search" class="w-4 h-4 mt-1 text-primary-500 bg-dark-500 border-dark-400 focus:ring-primary-500 focus:ring-offset-dark-700">
                 <label for="tavilySearchTool" class="ml-3 block text-sm font-medium text-white">
                   Enable Tavily Web Search
-                  <div class="text-gray-400 text-xs mt-1">Allows enhanced CoD reasoning with up-to-date web information</div>
+                  <div class="text-gray-400 text-xs mt-1">Allows the model to request web searches via Tavily for up-to-date information.</div>
                 </label>
+              </div>
+            </div>
+            
+            <div class="bg-dark-700 rounded-lg p-4 mt-6">
+              <div class="flex items-center text-blue-300 text-sm font-medium mb-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                About MCP Tools
+              </div>
+              <div class="text-gray-400 text-xs">
+                <p>Model Context Protocol (MCP) tools extend the model's capabilities by allowing it to request actions like:</p>
+                <ul class="list-disc list-inside mt-2 space-y-1">
+                  <li>Accessing real-time information from the web (e.g., via Tavily).</li>
+                  <li>Performing precise calculations (future).</li>
+                  <li>Using external systems to retrieve data (future).</li>
+                </ul>
+                <p class="mt-2">Select which tools you want to make available to the model. The model will then decide if and when to use them by outputting a structured request.</p>
               </div>
             </div>
           </div>
@@ -509,139 +613,27 @@
     /***********************
      * Global Configuration
      ***********************/
-    const FIREWORKS_MODEL = "accounts/fireworks/models/qwen3-235b-a22b";
+    const FIREWORKS_MODEL = "accounts/fireworks/models/deepseek-v3-0324";
 
-    // Enhanced CoD Configuration
-    let COD_WORDS_PER_STEP = 5; // Configurable from 5-15 words
-    let ENABLE_PROBLEM_DETECTION = true;
-    let ENABLE_DETAILED_ANALYSIS = true;
-    let ENABLE_PART_REFLECTIONS = true;
-    let ENABLE_META_REFLECTION = true;
+    let PROMPTS = {
+      standard: "",
+      cod: ""
+    };
+
+    let REASONING_METHOD = "cod";
+    let SELF_REFLECTION_ENABLED = true;
+    let COD_WORD_COUNT = 12;
+    let ENHANCED_COD_MODE = false; // New: Enhanced CoD toggle
     
     let TEMPERATURE = 0.6;
     let TOP_P = 1;
     let TOP_K = 40;
-    let MAX_TOKENS = 12000; // Increased for enhanced reasoning
+    let MAX_TOKENS = 8192;
+    let PRESENCE_PENALTY = 0;
+    let FREQUENCY_PENALTY = 0;
     let ENABLE_STREAMING = true;
     let ENABLED_MCP_TOOLS = [];
-    let enableWebSearchQuickToggle = false;
-    
-    /***********************
-     * Enhanced CoD Prompts
-     ***********************/
-    function generateEnhancedCoDPrompt() {
-      return `You are an advanced AI reasoning system that uses an Enhanced Chain of Draft (CoD) methodology for solving complex problems. When you receive a problem that appears to be mathematical, coding-related, or involves complex logic, follow this structured approach:
-
-## ENHANCED CHAIN OF DRAFT REASONING STRUCTURE
-
-### Phase 1: PROBLEM ANALYSIS (Detailed - NOT using CoD)
-${ENABLE_DETAILED_ANALYSIS ? `
-**[PROBLEM ANALYSIS]**
-First, provide a comprehensive analysis of the problem:
-- Identify the problem type (mathematical, coding, logical reasoning, etc.)
-- Break down the problem into main components/parts that need to be solved
-- Determine the logical sequence for solving each part
-- Estimate complexity and potential challenges
-- List what information is given and what needs to be found
-
-This analysis should be thorough and detailed - do NOT use the ${COD_WORDS_PER_STEP}-word limit here.
-` : ''}
-
-### Phase 2: ENHANCED COD REASONING BY PARTS
-For each main part identified in the analysis, apply Chain of Draft reasoning:
-
-**CoD Guidelines:**
-- Each reasoning step limited to **${COD_WORDS_PER_STEP} words maximum**
-- Focus on essential information only
-- Use mathematical notation, equations, and shorthand where possible
-- Number each CoD step clearly
-
-**Format for each part:**
-\`\`\`
-**PART X: [Part Description]**
-CoD Step 1: [${COD_WORDS_PER_STEP} words max]
-CoD Step 2: [${COD_WORDS_PER_STEP} words max]
-CoD Step 3: [${COD_WORDS_PER_STEP} words max]
-...continue until part is complete
-\`\`\`
-
-### Phase 3: PART REFLECTIONS
-${ENABLE_PART_REFLECTIONS ? `
-After completing each part, create a detailed reflection:
-
-**[REFLECTION X]**
-- Verify calculations and logic used in this part
-- Assess confidence level in the solution
-- Identify any potential issues or alternative approaches
-- Connect this part to the overall problem solution
-- Note insights gained that might affect other parts
-
-These reflections should be comprehensive - do NOT use the ${COD_WORDS_PER_STEP}-word limit here.
-` : ''}
-
-### Phase 4: META-REFLECTION
-${ENABLE_META_REFLECTION ? `
-After completing all parts and their individual reflections:
-
-**[META-REFLECTION ON ALL PARTS]**
-- Review all individual reflections together
-- Look for patterns, insights, or contradictions across parts
-- Identify any mistakes or improvements needed
-- Verify the overall solution coherence
-- Assess the completeness of the solution
-- Note any alternative approaches that might be better
-
-This meta-reflection should be thorough and comprehensive.
-` : ''}
-
-### Phase 5: FINAL COMPREHENSIVE ANSWER
-Provide your final answer with detailed explanations:
-- Clearly state the solution
-- Explain why this solution is correct
-- Reference key insights from your reflections
-- Show how all parts connect to form the complete solution
-
-## IMPORTANT NOTES:
-- Only apply this enhanced structure to complex problems (math, code, logic)
-- For simple questions, use standard responses
-- The ${COD_WORDS_PER_STEP}-word limit applies ONLY to CoD steps, not to analysis or reflections
-- Use mathematical notation and shorthand in CoD steps to maximize information density
-- Be precise and concise in CoD steps, but thorough in reflections
-
-Begin your response now:`;
-    }
-    
-    /***********************
-     * Problem Detection
-     ***********************/
-    function isComplexProblem(userMessage) {
-      if (!ENABLE_PROBLEM_DETECTION) return false;
-      
-      const complexPatterns = [
-        // Math indicators
-        /\b(solve|calculate|compute|find|determine)\b.*\b(equation|formula|integral|derivative|matrix|polynomial|probability|statistics)\b/i,
-        /\b(algebra|calculus|geometry|trigonometry|logarithm|exponential)\b/i,
-        /\b(\d+)\s*[\+\-\*\/\^]\s*(\d+)/,
-        /\b(proof|theorem|lemma|corollary)\b/i,
-        
-        // Code indicators
-        /\b(code|program|algorithm|function|class|debug|optimize|implement)\b/i,
-        /\b(python|javascript|java|c\+\+|sql|html|css|react|node)\b/i,
-        /\b(loop|recursion|sorting|search|data structure|complexity)\b/i,
-        /```[\s\S]*```/,
-        
-        // Logic indicators
-        /\b(logic|reasoning|proof|contradict|syllogism|premise|conclusion)\b/i,
-        /\b(if.*then|implies|necessary|sufficient|proof by)\b/i,
-        /\b(true|false|and|or|not)\b.*\b(statement|proposition)\b/i,
-        
-        // Complex problem indicators
-        /\b(step by step|break down|analyze|systematic|complex|challenging)\b/i,
-        /\b(multiple|several|various|different)\b.*\b(parts|components|aspects|steps)\b/i
-      ];
-      
-      return complexPatterns.some(pattern => pattern.test(userMessage));
-    }
+    let enableWebSearchQuickToggle = false; 
     
     /***********************
      * Thread Management
@@ -732,7 +724,14 @@ Begin your response now:`;
         return; 
       }
       
-      let content = `Enhanced AI Reasoning Studio - Chain of Draft\nCoD Words Per Step: ${COD_WORDS_PER_STEP}\nModel: ${FIREWORKS_MODEL}\n\n`;
+      let content = `Enhanced AI Reasoning Studio - ${REASONING_METHOD.toUpperCase()}`;
+      if (ENHANCED_COD_MODE) {
+        content += ` (Enhanced Mode: Two-Stage API)`;
+      }
+      if (REASONING_METHOD === "cod") { 
+        content += ` (CoD Word Count: ${COD_WORD_COUNT}, Deep Reflections Mode)`; 
+      }
+      content += `\nModel: ${FIREWORKS_MODEL}\n\n`;
       
       thread.messages.forEach(msg => {
         if (msg.isPlaceholder) return;
@@ -740,16 +739,27 @@ Begin your response now:`;
         content += `${prefix}:\n${msg.content}\n\n`;
         
         if (msg.sender === 'bot' && !msg.isPlaceholder && !msg.isStreaming) {
+          if (msg.enhanced_cod_metadata) {
+            content += `(Enhanced CoD: 2 stages, Verification included)\n`;
+          }
           if (msg.wordCount !== undefined) {
-            content += `(Words: ${msg.wordCount})`;
+            content += `(Words: ${msg.wordCount}`;
+            if (msg.thinkingWordCount !== undefined && msg.answerWordCount !== undefined) {
+              content += ` [Think: ${msg.thinkingWordCount}, Ans: ${msg.answerWordCount}]`;
+            }
+            content += ")\n";
           }
           if (msg.totalTokens !== undefined) {
-            content += ` (Tokens: ${msg.totalTokens})`;
+            content += `(Tokens: ${msg.totalTokens}`;
+            if (msg.promptTokens !== undefined && msg.completionTokens !== undefined) {
+              content += ` [Prompt: ${msg.promptTokens}, Completion: ${msg.completionTokens}]`;
+            }
+            content += ")\n";
           }
           if (msg.durationSeconds !== undefined) {
-            content += ` (Time: ${msg.durationSeconds}s)`;
+            content += `(Time: ${msg.durationSeconds}s)\n`;
           }
-          content += "\n\n";
+          content += "\n";
         }
       });
       
@@ -757,7 +767,7 @@ Begin your response now:`;
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `${thread.name || "Thread"}_Enhanced_CoD.txt`;
+      a.download = `${thread.name || "Thread"}.txt`;
       a.style.display = 'none';
       document.body.appendChild(a);
       a.click();
@@ -765,7 +775,7 @@ Begin your response now:`;
         document.body.removeChild(a); 
         URL.revokeObjectURL(url); 
       }, 100);
-      showNotification("Enhanced CoD file downloaded");
+      showNotification("TXT file downloaded");
     }
     
     function showNotification(message, duration = 3000) {
@@ -874,94 +884,145 @@ Begin your response now:`;
       return processedText.split(/\s+/).filter(word => word.length > 0).length;
     }
     
-    function parseEnhancedCoDResponse(content) {
-      const sections = {
-        problemAnalysis: '',
-        parts: [],
-        reflections: [],
-        metaReflection: '',
-        finalAnswer: ''
+    function processBotMessage(content, reasoningMethod) {
+      if (reasoningMethod === "cod") {
+        const separatorIndex = content.indexOf("####");
+        if (separatorIndex !== -1) {
+          let thinking = content.substring(0, separatorIndex).trim();
+          let answer = content.substring(separatorIndex + 4).trim();
+          return {
+            content, 
+            thinking, 
+            answer,
+            thinkingWordCount: countWords(thinking), 
+            answerWordCount: countWords(answer)
+          };
+        }
+      }
+      return { 
+        content, 
+        thinking: null, 
+        answer: content, 
+        thinkingWordCount: 0, 
+        answerWordCount: countWords(content) 
       };
-      
-      // Extract Problem Analysis
-      const analysisMatch = content.match(/\*\*\[PROBLEM ANALYSIS\]\*\*([\s\S]*?)(?=\*\*PART|$)/i);
-      if (analysisMatch) {
-        sections.problemAnalysis = analysisMatch[1].trim();
-      }
-      
-      // Extract Parts and CoD steps
-      const partMatches = content.matchAll(/\*\*PART (\d+): ([^*]+)\*\*([\s\S]*?)(?=\*\*(?:PART|\[REFLECTION|\[META-REFLECTION|$))/gi);
-      for (const match of partMatches) {
-        const partNumber = match[1];
-        const partTitle = match[2].trim();
-        const partContent = match[3].trim();
-        sections.parts.push({
-          number: partNumber,
-          title: partTitle,
-          content: partContent
-        });
-      }
-      
-      // Extract Reflections
-      const reflectionMatches = content.matchAll(/\*\*\[REFLECTION (\d+)\]\*\*([\s\S]*?)(?=\*\*(?:\[REFLECTION|\[META-REFLECTION|PART|$))/gi);
-      for (const match of reflectionMatches) {
-        const reflectionNumber = match[1];
-        const reflectionContent = match[2].trim();
-        sections.reflections.push({
-          number: reflectionNumber,
-          content: reflectionContent
-        });
-      }
-      
-      // Extract Meta-Reflection
-      const metaReflectionMatch = content.match(/\*\*\[META-REFLECTION ON ALL PARTS\]\*\*([\s\S]*?)(?=\*\*|###|$)/i);
-      if (metaReflectionMatch) {
-        sections.metaReflection = metaReflectionMatch[1].trim();
-      }
-      
-      // Extract Final Answer (everything after the last reflection or meta-reflection)
-      const finalAnswerMatch = content.match(/(?:META-REFLECTION.*?[\s\S]*?)(?:###.*?|$)([\s\S]*)$/i);
-      if (finalAnswerMatch) {
-        sections.finalAnswer = finalAnswerMatch[1].trim();
-      } else {
-        // Fallback: take content after last reflection
-        const lastReflectionIndex = Math.max(
-          content.lastIndexOf('**[REFLECTION'),
-          content.lastIndexOf('**[META-REFLECTION')
-        );
-        if (lastReflectionIndex !== -1) {
-          const afterLastReflection = content.substring(lastReflectionIndex);
-          const endOfReflection = afterLastReflection.search(/\n\n(?!\s*-)/);
-          if (endOfReflection !== -1) {
-            sections.finalAnswer = afterLastReflection.substring(endOfReflection).trim();
-          }
-        }
-      }
-      
-      return sections;
     }
-    
-    function formatEnhancedCoDSteps(partContent) {
-      const lines = partContent.split('\n').filter(line => line.trim());
-      let html = '';
-      let stepCounter = 1;
+
+    function formatThinkingSteps(thinking, reasoningMethod, isEnhanced = false) {
+      if (!thinking) return '';
+      let cleanedThinking = thinking.replace(/^#{1,3}\s*/gm, ''); 
       
-      for (const line of lines) {
-        const trimmed = line.trim();
-        if (trimmed.match(/^CoD Step \d+:/i)) {
-          const stepContent = trimmed.replace(/^CoD Step \d+:\s*/i, '');
-          html += `
-            <div class="flex items-start p-2 mb-2 rounded-lg bg-blue-900/20 border-l-2 border-blue-500 cod-step">
-              <span class="flex items-center justify-center min-w-6 h-6 mr-3 rounded-full bg-blue-700 text-blue-200 text-xs font-bold">${stepCounter++}</span>
-              <span class="step-content font-mono text-sm text-blue-100">${stepContent}</span>
-            </div>
-          `;
-        } else if (trimmed) {
-          html += `<div class="text-sm text-gray-300 mb-1">${trimmed}</div>`;
+      if (reasoningMethod === "cod") {
+        let html = '';
+        let currentPosition = 0;
+        let codStepCounter = 1;
+        const length = cleanedThinking.length;
+
+        // Enhanced CoD: Check for verification section
+        const verificationIndex = cleanedThinking.indexOf("======= ENHANCED VERIFICATION & REFINEMENT =======");
+        let mainThinking = cleanedThinking;
+        let verificationSection = "";
+        
+        if (verificationIndex !== -1) {
+          mainThinking = cleanedThinking.substring(0, verificationIndex).trim();
+          verificationSection = cleanedThinking.substring(verificationIndex).trim();
         }
+
+        const findNextMarkerInfo = (text, pos) => {
+          const drRegex = /DEEP REFLECTION\s*(\d+)\s*:/gi;
+          const frRegex = SELF_REFLECTION_ENABLED ? /Reflection:/gi : null; 
+
+          drRegex.lastIndex = 0; 
+          let drMatch = drRegex.exec(text.substring(pos));
+          
+          let frMatch = null;
+          if (frRegex) {
+            frRegex.lastIndex = 0; 
+            frMatch = frRegex.exec(text.substring(pos));
+          }
+          
+          let drPos = drMatch ? drMatch.index + pos : Infinity;
+          let frPos = frMatch ? frMatch.index + pos : Infinity;
+
+          if (drPos === Infinity && frPos === Infinity) return null;
+
+          if (drPos < frPos) {
+            return { 
+              type: 'deep_reflection', 
+              index: drPos, 
+              markerText: drMatch[0], 
+              number: drMatch[1], 
+              endOfMarker: drPos + drMatch[0].length 
+            };
+          } else if (frPos < drPos) { 
+            return { 
+              type: 'final_reflection', 
+              index: frPos, 
+              markerText: frMatch[0], 
+              endOfMarker: frPos + frMatch[0].length 
+            };
+          }
+          return null; 
+        };
+
+        // Process main thinking section
+        currentPosition = 0;
+        const mainLength = mainThinking.length;
+        
+        while (currentPosition < mainLength) {
+          let nextMarker = findNextMarkerInfo(mainThinking, currentPosition);
+          let segmentEnd = nextMarker ? nextMarker.index : mainLength;
+
+          const codSegment = mainThinking.substring(currentPosition, segmentEnd).trim();
+          if (codSegment) {
+            let steps = codSegment.split('.').filter(step => step.trim().length > 0);
+            steps.forEach(step => {
+              let stepContent = step.trim();
+              html += `<div class="flex items-start p-3 mb-2 rounded-lg bg-slate-800/30 thinking-step">
+                         <span class="flex items-center justify-center min-w-8 h-8 mr-3 rounded-full bg-slate-700 text-primary-400 text-sm font-bold step-number">${codStepCounter++}</span>
+                         <span class="step-content font-mono text-sm">${stepContent}.</span>
+                       </div>`;
+            });
+          }
+
+          if (!nextMarker) break; 
+
+          let reflectionContentEndPos = mainLength;
+          let lookaheadForNext = findNextMarkerInfo(mainThinking, nextMarker.endOfMarker);
+          if (lookaheadForNext) {
+            reflectionContentEndPos = lookaheadForNext.index;
+          }
+          
+          const reflectionContent = mainThinking.substring(nextMarker.endOfMarker, reflectionContentEndPos).trim();
+
+          if (nextMarker.type === 'deep_reflection') {
+            html += `<div class="p-4 mb-3 rounded-lg bg-sky-900/30 border-l-4 border-sky-500 detailed-reflection-step">
+                       <div class="font-semibold text-sky-300 mb-2">${nextMarker.markerText}</div>
+                       <div class="font-mono text-sm text-sky-200">${transformMessage(reflectionContent)}</div>
+                     </div>`;
+          } else if (nextMarker.type === 'final_reflection') {
+            html += `<div class="flex items-start p-3 mb-2 rounded-lg bg-indigo-900/20 border-l-4 border-indigo-500 reflection-step">
+                      <span class="flex items-center justify-center min-w-8 h-8 mr-3 rounded-full bg-indigo-700/50 text-indigo-300 text-sm font-bold step-number">🔍</span>
+                      <span class="step-content font-mono text-sm text-indigo-300">${nextMarker.markerText} ${transformMessage(reflectionContent)}</span>
+                    </div>`;
+          }
+          currentPosition = reflectionContentEndPos;
+        }
+
+        // Add verification section if present (Enhanced CoD)
+        if (verificationSection) {
+          html += `<div class="mt-6 p-4 rounded-lg verification-section stage-transition">
+                     <div class="flex items-center mb-3">
+                       <span class="stage-badge text-white px-3 py-1 rounded-full text-sm font-bold mr-3">STAGE 2</span>
+                       <div class="font-semibold text-cyan-300">Enhanced Verification & Refinement</div>
+                     </div>
+                     <div class="font-mono text-sm text-cyan-200">${transformMessage(verificationSection)}</div>
+                   </div>`;
+        }
+
+        return html;
       }
-      
-      return html;
+      return `<div class="p-2 mb-2 border-l-2 border-slate-600">${transformMessage(cleanedThinking)}</div>`;
     }
     
     function transformMessage(content) {
@@ -1008,7 +1069,14 @@ Begin your response now:`;
           } else { // Bot message
             messageDiv.className = "flex justify-start";
             const msgContent = document.createElement("div");
-            msgContent.className = "max-w-[95%] bg-dark-700 border border-dark-500 p-4 rounded-2xl rounded-tl-sm shadow-md";
+            let baseClasses = "max-w-[90%] bg-dark-700 border border-dark-500 p-4 rounded-2xl rounded-tl-sm shadow-md";
+            
+            // Enhanced CoD styling
+            if (msg.enhanced_cod_metadata) {
+              baseClasses += " enhanced-mode";
+            }
+            
+            msgContent.className = baseClasses;
             
             if (msg.isPlaceholder) {
               msgContent.classList.add("opacity-70");
@@ -1016,115 +1084,56 @@ Begin your response now:`;
             } else if (msg.isStreaming) {
               msgContent.classList.add("streaming");
               msgContent.innerHTML = transformMessage(msg.content); 
-              msgContent.innerHTML += `<div class="text-primary-400 text-xs mt-2 streaming-indicator">Generating Enhanced CoD Reasoning</div>`;
-            } else if (msg.enhancedCoD) { 
-              // Render Enhanced CoD Structure
-              const sections = parseEnhancedCoDResponse(msg.content);
+              msgContent.innerHTML += `<div class="text-primary-400 text-xs mt-2 streaming-indicator">Generating</div>`;
+            } else if (msg.thinking) { 
+              const thinkingContainer = document.createElement("div");
+              thinkingContainer.className = "thinking-steps bg-dark-800 rounded-lg p-4 mb-4 border border-dark-600";
               
-              // Problem Analysis
-              if (sections.problemAnalysis && ENABLE_DETAILED_ANALYSIS) {
-                const analysisContainer = document.createElement("div");
-                analysisContainer.className = "problem-analysis bg-amber-900/20 rounded-lg p-4 mb-4 border border-amber-700/30";
-                
-                const analysisLabel = document.createElement("div");
-                analysisLabel.className = "text-xs uppercase tracking-wider font-semibold text-amber-400 mb-3 pb-2 border-b border-amber-600/30 flex items-center";
-                analysisLabel.innerHTML = `
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
-                  </svg>
-                  Problem Analysis & Breakdown
-                `;
-                analysisContainer.appendChild(analysisLabel);
-                
-                const analysisContent = document.createElement("div");
-                analysisContent.innerHTML = transformMessage(sections.problemAnalysis); 
-                analysisContainer.appendChild(analysisContent);
-                msgContent.appendChild(analysisContainer);
-              }
+              const thinkingLabel = document.createElement("div");
+              thinkingLabel.className = "text-xs uppercase tracking-wider font-semibold text-gray-400 mb-3 pb-2 border-b border-dark-500";
               
-              // CoD Parts
-              sections.parts.forEach((part, index) => {
-                const partContainer = document.createElement("div");
-                partContainer.className = "bg-blue-900/20 rounded-lg p-4 mb-4 border border-blue-700/30";
-                
-                const partLabel = document.createElement("div");
-                partLabel.className = "text-xs uppercase tracking-wider font-semibold text-blue-400 mb-3 pb-2 border-b border-blue-600/30 flex items-center justify-between";
-                partLabel.innerHTML = `
-                  <div class="flex items-center">
-                    <div class="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center text-xs font-bold mr-2">${part.number}</div>
-                    Chain of Draft - Part ${part.number}: ${part.title}
+              if (msg.enhanced_cod_metadata) {
+                thinkingLabel.innerHTML = `
+                  <div class="flex items-center justify-between">
+                    <span>Enhanced Chain of Draft (Two-Stage Reasoning)</span>
+                    <span class="stage-badge text-white px-2 py-1 rounded-full text-xs">2 STAGES</span>
                   </div>
-                  <div class="text-xs text-blue-300">${COD_WORDS_PER_STEP} words/step max</div>
                 `;
-                partContainer.appendChild(partLabel);
-                
-                const partContent = document.createElement("div");
-                partContent.innerHTML = formatEnhancedCoDSteps(part.content);
-                partContainer.appendChild(partContent);
-                msgContent.appendChild(partContainer);
-                
-                // Add reflection for this part
-                if (sections.reflections[index] && ENABLE_PART_REFLECTIONS) {
-                  const reflectionContainer = document.createElement("div");
-                  reflectionContainer.className = "reflection-box bg-purple-900/20 rounded-lg p-4 mb-4 border border-purple-700/30";
-                  
-                  const reflectionLabel = document.createElement("div");
-                  reflectionLabel.className = "text-xs uppercase tracking-wider font-semibold text-purple-400 mb-3 pb-2 border-b border-purple-600/30 flex items-center";
-                  reflectionLabel.innerHTML = `
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
-                    </svg>
-                    Detailed Reflection ${sections.reflections[index].number}
-                  `;
-                  reflectionContainer.appendChild(reflectionLabel);
-                  
-                  const reflectionContent = document.createElement("div");
-                  reflectionContent.innerHTML = transformMessage(sections.reflections[index].content);
-                  reflectionContainer.appendChild(reflectionContent);
-                  msgContent.appendChild(reflectionContainer);
-                }
-              });
-              
-              // Meta-Reflection
-              if (sections.metaReflection && ENABLE_META_REFLECTION) {
-                const metaContainer = document.createElement("div");
-                metaContainer.className = "meta-reflection rounded-lg p-4 mb-4 border border-indigo-700/30";
-                
-                const metaLabel = document.createElement("div");
-                metaLabel.className = "text-xs uppercase tracking-wider font-semibold text-indigo-400 mb-3 pb-2 border-b border-indigo-600/30 flex items-center";
-                metaLabel.innerHTML = `
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path>
-                  </svg>
-                  Meta-Reflection on All Parts
-                `;
-                metaContainer.appendChild(metaLabel);
-                
-                const metaContent = document.createElement("div");
-                metaContent.innerHTML = transformMessage(sections.metaReflection);
-                metaContainer.appendChild(metaContent);
-                msgContent.appendChild(metaContainer);
+              } else {
+                thinkingLabel.textContent = "Chain of Draft & Deep Reflections";
               }
               
-              // Final Answer
-              if (sections.finalAnswer) {
-                const answerContainer = document.createElement("div");
-                answerContainer.className = "final-answer rounded-lg p-4 border border-green-700/30";
+              thinkingContainer.appendChild(thinkingLabel);
+              
+              const thinkingContentDiv = document.createElement("div");
+              thinkingContentDiv.innerHTML = formatThinkingSteps(msg.thinking, msg.reasoningMethod ? msg.reasoningMethod.toLowerCase().split('-')[0] : REASONING_METHOD, !!msg.enhanced_cod_metadata);
+              thinkingContainer.appendChild(thinkingContentDiv);
+              msgContent.appendChild(thinkingContainer);
+              
+              if (msg.answer) {
+                const answerDiv = document.createElement("div");
+                answerDiv.className = "bg-dark-800 rounded-lg p-4 border border-dark-600";
                 
                 const answerLabel = document.createElement("div");
-                answerLabel.className = "text-xs uppercase tracking-wider font-semibold text-green-400 mb-3 pb-2 border-b border-green-600/30 flex items-center";
-                answerLabel.innerHTML = `
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                  </svg>
-                  Final Comprehensive Answer
-                `;
-                answerContainer.appendChild(answerLabel);
+                answerLabel.className = "text-xs uppercase tracking-wider font-semibold text-primary-400 mb-3 pb-2 border-b border-dark-500";
+                
+                if (msg.enhanced_cod_metadata) {
+                  answerLabel.innerHTML = `
+                    <div class="flex items-center">
+                      <span class="stage-badge text-white px-2 py-1 rounded-full text-xs mr-2">FINAL</span>
+                      <span>Enhanced Final Answer</span>
+                    </div>
+                  `;
+                } else {
+                  answerLabel.textContent = "Final Detailed Answer";
+                }
+                
+                answerDiv.appendChild(answerLabel);
                 
                 const answerContent = document.createElement("div");
-                answerContent.innerHTML = transformMessage(sections.finalAnswer); 
-                answerContainer.appendChild(answerContent);
-                msgContent.appendChild(answerContainer);
+                answerContent.innerHTML = transformMessage(msg.answer); 
+                answerDiv.appendChild(answerContent);
+                msgContent.appendChild(answerDiv);
               }
             } else { 
               msgContent.innerHTML = transformMessage(msg.content);
@@ -1143,19 +1152,33 @@ Begin your response now:`;
               statsDiv.className = "mt-3 pt-2 border-t border-dark-600/50 text-xs text-gray-400 flex flex-wrap gap-x-4 gap-y-1 items-center";
               
               let statsAdded = false;
+
+              // Enhanced CoD indicator
+              if (msg.enhanced_cod_metadata) {
+                const enhancedStat = document.createElement('span');
+                enhancedStat.innerHTML = `<span class="text-enhanced-400 font-medium">Enhanced CoD</span> (2 stages)`;
+                statsDiv.appendChild(enhancedStat);
+                statsAdded = true;
+              }
+              
               if (msg.wordCount !== undefined) {
+                let badgeText = `Words: <span class="text-gray-300">${msg.wordCount}</span>`;
+                if (msg.thinkingWordCount !== undefined && msg.answerWordCount !== undefined && (msg.thinkingWordCount > 0 || msg.answerWordCount > 0)) {
+                  badgeText = `Words: <span class="text-gray-300">${msg.thinkingWordCount}</span> (think) + <span class="text-primary-300">${msg.answerWordCount}</span> (ans)`;
+                }
                 const wordStat = document.createElement('span');
-                wordStat.innerHTML = `Words: <span class="text-gray-300">${msg.wordCount}</span>`;
+                wordStat.innerHTML = badgeText;
                 statsDiv.appendChild(wordStat);
                 statsAdded = true;
               }
 
               if (msg.totalTokens !== undefined) {
-                const tokenStat = document.createElement('span');
-                tokenStat.innerHTML = `Tokens: <span class="text-teal-300 font-medium">${msg.totalTokens}</span>`;
+                let tokenText = `Tokens: <span class="text-teal-400 font-medium">${msg.totalTokens}</span> total`;
                 if (msg.promptTokens !== undefined && msg.completionTokens !== undefined) {
-                  tokenStat.innerHTML = `Tokens: <span class="text-gray-300">${msg.promptTokens}</span> (p) + <span class="text-teal-300 font-medium">${msg.completionTokens}</span> (c)`;
+                  tokenText = `Tokens: <span class="text-gray-300">${msg.promptTokens}</span> (p) + <span class="text-teal-300 font-medium">${msg.completionTokens}</span> (c)`;
                 }
+                const tokenStat = document.createElement('span');
+                tokenStat.innerHTML = tokenText;
                 statsDiv.appendChild(tokenStat);
                 statsAdded = true;
               }
@@ -1164,13 +1187,6 @@ Begin your response now:`;
                 const timeStat = document.createElement('span');
                 timeStat.innerHTML = `Time: <span class="text-amber-400 font-medium">${msg.durationSeconds}s</span>`;
                 statsDiv.appendChild(timeStat);
-                statsAdded = true;
-              }
-
-              if (msg.enhancedCoD) {
-                const codStat = document.createElement('span');
-                codStat.innerHTML = `CoD: <span class="text-primary-400 font-medium">${COD_WORDS_PER_STEP} words/step</span>`;
-                statsDiv.appendChild(codStat);
                 statsAdded = true;
               }
 
@@ -1198,21 +1214,33 @@ Begin your response now:`;
       msgContent.appendChild(filesDiv);
     }
     
-    function addMessageToCurrentThread(content, sender, isPlaceholder = false, files = []) {
+    function addMessageToCurrentThread(content, sender, isPlaceholder = false, files = [], enhanced_cod_metadata = null) {
       const thread = threads.find(t => t.id === currentThreadId);
       if (thread) {
-        const wordCount = sender === "bot" && !isPlaceholder ? countWords(content) : 0;
-        const isComplex = sender === "user" ? isComplexProblem(content) : false;
+        let thinking = null, answer = null, thinkingWordCount = 0, answerWordCount = 0, totalWordCount = 0;
+        
+        if (sender === "bot" && !isPlaceholder) {
+          const processed = processBotMessage(content, REASONING_METHOD);
+          thinking = processed.thinking; 
+          answer = processed.answer;
+          thinkingWordCount = processed.thinkingWordCount || 0; 
+          answerWordCount = processed.answerWordCount || 0;
+          totalWordCount = thinkingWordCount + answerWordCount;
+        }
         
         thread.messages.push({
           content, 
           sender, 
           isPlaceholder, 
           timestamp: new Date(),
-          wordCount: wordCount,
+          wordCount: sender === "bot" && !isPlaceholder ? totalWordCount : (countWords(content) || 0),
+          reasoningMethod: sender === "bot" && !isPlaceholder ? REASONING_METHOD.toUpperCase() : undefined,
+          thinking, 
+          answer, 
+          thinkingWordCount, 
+          answerWordCount,
           files: files && files.length > 0 ? files.map(f => ({ name: f.name, type: f.type, size: f.size })) : undefined,
-          enhancedCoD: sender === "bot" && !isPlaceholder && isComplex,
-          isComplexProblem: isComplex
+          enhanced_cod_metadata: enhanced_cod_metadata
         });
         renderCurrentThreadMessages();
       }
@@ -1223,13 +1251,8 @@ Begin your response now:`;
       if (!thread) return [];
       
       const messages = [];
-      
-      // Check if the last user message is a complex problem
-      const lastUserMessage = thread.messages.filter(msg => msg.sender === "user" && !msg.isPlaceholder).pop();
-      const useEnhancedCoD = lastUserMessage && isComplexProblem(lastUserMessage.content);
-      
-      if (useEnhancedCoD) {
-        messages.push({ role: "system", content: generateEnhancedCoDPrompt() });
+      if (REASONING_METHOD !== "standard") {
+        messages.push({ role: "system", content: PROMPTS[REASONING_METHOD] });
       }
       
       thread.messages.filter(msg => !msg.isPlaceholder).forEach(msg => {
@@ -1251,7 +1274,7 @@ Begin your response now:`;
           type: "function", 
           function: { 
             name: "tavily_search", 
-            description: "Performs a web search using Tavily for up-to-date information to enhance CoD reasoning.", 
+            description: "Performs a web search using Tavily for up-to-date information.", 
             parameters: { 
               type: "object", 
               properties: { 
@@ -1269,9 +1292,9 @@ Begin your response now:`;
     }
     
     async function sendMessage(message) {
-      ENABLE_STREAMING = (localStorage.getItem('streamingEnabled') !== null) ? (localStorage.getItem('streamingEnabled') === 'true') : ENABLE_STREAMING;
+      // Disable streaming for Enhanced CoD mode
+      const effectiveStreaming = ENHANCED_COD_MODE ? false : ENABLE_STREAMING;
       
-      const isComplex = isComplexProblem(message);
       addMessageToCurrentThread(message, "user", false, attachedFiles.map(f => ({name: f.name, type: f.type, size: f.size})));
       attachedFiles = []; 
       const attachedFilesContainer = document.getElementById('attachedFiles');
@@ -1280,7 +1303,7 @@ Begin your response now:`;
         attachedFilesContainer.classList.add('hidden'); 
       }
       
-      let placeholderText = isComplex ? "Analyzing problem and preparing Enhanced Chain of Draft reasoning..." : "Thinking...";
+      let placeholderText = ENHANCED_COD_MODE ? "Enhanced reasoning in progress..." : "Thinking...";
       addMessageToCurrentThread(placeholderText, "bot", true);
       const thread = threads.find(t => t.id === currentThreadId);
       const placeholderIndex = thread.messages.length - 1;
@@ -1292,8 +1315,8 @@ Begin your response now:`;
         const messagesForApi = buildMessagesForChat();
         const tools = getToolsConfiguration();
         let validatedMaxTokens = parseInt(MAX_TOKENS);
-        if (isNaN(validatedMaxTokens) || !isFinite(validatedMaxTokens)) validatedMaxTokens = 12000;
-        validatedMaxTokens = Math.min(Math.max(1, validatedMaxTokens), 30000);
+        if (isNaN(validatedMaxTokens) || !isFinite(validatedMaxTokens)) validatedMaxTokens = 8192;
+        validatedMaxTokens = Math.min(Math.max(1, validatedMaxTokens), 16384);
         
         const payload = { 
           model: FIREWORKS_MODEL, 
@@ -1302,7 +1325,11 @@ Begin your response now:`;
           top_p: TOP_P, 
           top_k: TOP_K, 
           max_tokens: validatedMaxTokens, 
-          stream: ENABLE_STREAMING 
+          presence_penalty: PRESENCE_PENALTY, 
+          frequency_penalty: FREQUENCY_PENALTY, 
+          stream: effectiveStreaming,
+          enhanced_cod_mode: ENHANCED_COD_MODE,
+          reasoning_method: REASONING_METHOD
         };
         
         if (tools && tools.length > 0) { 
@@ -1310,9 +1337,9 @@ Begin your response now:`;
           payload.tool_choice = "auto"; 
         }
         
-        if (ENABLE_STREAMING) {
-          console.log("Using Enhanced CoD streaming mode. Complex problem detected:", isComplex);
-          thread.messages[placeholderIndex].content = "Connecting to Enhanced CoD API..."; 
+        if (effectiveStreaming && !ENHANCED_COD_MODE) {
+          console.log("Using streaming mode. Payload:", JSON.stringify(payload, null, 2).substring(0,500) + "...");
+          thread.messages[placeholderIndex].content = "Connecting to streaming API..."; 
           renderCurrentThreadMessages();
           
           let fullResponse = ""; 
@@ -1330,15 +1357,15 @@ Begin your response now:`;
     
           if (!response.ok) { 
             const errorText = await response.text(); 
-            console.error("Enhanced CoD Streaming API Error Status:", response.status);
-            console.error("Enhanced CoD Streaming API Error Text:", errorText); 
+            console.error("Streaming API Error Status:", response.status);
+            console.error("Streaming API Error Text:", errorText); 
             let errorData; 
             try { 
               errorData = JSON.parse(errorText); 
             } catch (e) { 
               errorData = { message: response.statusText || "Unknown streaming error" }; 
             } 
-            throw new Error(`Error starting Enhanced CoD stream: ${response.status} - ${errorData.fault?.faultstring || errorData.message || 'Unknown error'}`); 
+            throw new Error(`Error starting stream: ${response.status} - ${errorData.fault?.faultstring || errorData.message || 'Unknown error'}`); 
           }
           
           const reader = response.body.getReader(); 
@@ -1347,7 +1374,7 @@ Begin your response now:`;
           while (true) {
             const { done, value } = await reader.read(); 
             if (done) { 
-              console.log("Enhanced CoD Stream complete"); 
+              console.log("Stream complete"); 
               break; 
             }
             
@@ -1397,7 +1424,6 @@ Begin your response now:`;
                       isPlaceholder: false, 
                       timestamp: new Date(), 
                       isStreaming: true, 
-                      enhancedCoD: isComplex,
                       tool_calls: currentToolCalls.length > 0 ? JSON.parse(JSON.stringify(currentToolCalls)) : undefined 
                     };
                     
@@ -1410,7 +1436,7 @@ Begin your response now:`;
                     }
                     
                     if (data.choices[0].finish_reason) {
-                      console.log("Enhanced CoD Stream finished with reason:", data.choices[0].finish_reason);
+                      console.log("Stream finished with reason:", data.choices[0].finish_reason);
                       if(data.usage) {
                          usageData = data.usage;
                       }
@@ -1418,7 +1444,7 @@ Begin your response now:`;
                   }
                 } catch (parseError) { 
                   if (dataText) {
-                    console.log("Non-JSON data or parse error in Enhanced CoD stream:", dataText, parseError); 
+                    console.log("Non-JSON data or parse error in stream:", dataText, parseError); 
                   }
                 }
               }
@@ -1427,14 +1453,19 @@ Begin your response now:`;
           
           const endTime = performance.now();
           const durationSeconds = ((endTime - startTime) / 1000).toFixed(2);
+          const processed = processBotMessage(fullResponse, REASONING_METHOD);
           
           thread.messages[placeholderIndex] = { 
             content: fullResponse, 
             sender: "bot", 
             isPlaceholder: false, 
             timestamp: new Date(), 
-            wordCount: countWords(fullResponse), 
-            enhancedCoD: isComplex,
+            wordCount: (processed.thinkingWordCount || 0) + (processed.answerWordCount || 0), 
+            reasoningMethod: REASONING_METHOD.toUpperCase(), 
+            thinking: processed.thinking, 
+            answer: processed.answer, 
+            thinkingWordCount: processed.thinkingWordCount || 0, 
+            answerWordCount: processed.answerWordCount || 0, 
             isStreaming: false, 
             tool_calls: currentToolCalls.length > 0 ? currentToolCalls : undefined,
             durationSeconds: durationSeconds,
@@ -1444,8 +1475,8 @@ Begin your response now:`;
           };
           renderCurrentThreadMessages();
     
-        } else { // Non-streaming
-          console.log("Sending Enhanced CoD non-streaming request. Complex problem detected:", isComplex);
+        } else { // Non-streaming or Enhanced CoD
+          console.log("Sending request. Enhanced CoD:", ENHANCED_COD_MODE, "Payload:", JSON.stringify(payload, null, 2).substring(0,500) + "...");
           
           const response = await fetch('/api/chat', { 
             method: "POST", 
@@ -1458,15 +1489,15 @@ Begin your response now:`;
           
           if (!response.ok) { 
             const errorText = await response.text(); 
-            console.error("Enhanced CoD Non-Streaming API Error Status:", response.status);
-            console.error("Enhanced CoD Non-Streaming API Error Text:", errorText); 
+            console.error("API Error Status:", response.status);
+            console.error("API Error Text:", errorText); 
             let errorData; 
             try { 
               errorData = JSON.parse(errorText); 
             } catch (e) { 
-              errorData = { message: response.statusText || "Unknown non-streaming error" };
+              errorData = { message: response.statusText || "Unknown error" };
             } 
-            throw new Error(`Enhanced CoD API returned status: ${response.status} - ${errorData.fault?.faultstring || errorData.message || 'Unknown error'}`);
+            throw new Error(`API returned status: ${response.status} - ${errorData.fault?.faultstring || errorData.message || 'Unknown error'}`);
           }
           
           const data = await response.json();
@@ -1476,31 +1507,38 @@ Begin your response now:`;
     
           const botReply = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content; 
           const toolCalls = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.tool_calls;
+          const enhancedMetadata = data.enhanced_cod ? data.choices[0].message.enhanced_cod_metadata : null;
           
           if (botReply || toolCalls) {
             const finalContent = botReply || ""; 
+            const processed = processBotMessage(finalContent, REASONING_METHOD);
             
             thread.messages[placeholderIndex] = { 
                 content: finalContent, 
                 sender: "bot", 
                 isPlaceholder: false, 
                 timestamp: new Date(), 
-                wordCount: countWords(finalContent), 
-                enhancedCoD: isComplex,
+                wordCount: (processed.thinkingWordCount || 0) + (processed.answerWordCount || 0), 
+                reasoningMethod: REASONING_METHOD.toUpperCase(), 
+                thinking: processed.thinking, 
+                answer: processed.answer, 
+                thinkingWordCount: processed.thinkingWordCount || 0, 
+                answerWordCount: processed.answerWordCount || 0, 
                 tool_calls: toolCalls,
                 durationSeconds: durationSeconds,
                 promptTokens: usageData ? usageData.prompt_tokens : undefined,
                 completionTokens: usageData ? usageData.completion_tokens : undefined,
-                totalTokens: usageData ? usageData.total_tokens : undefined
+                totalTokens: usageData ? usageData.total_tokens : undefined,
+                enhanced_cod_metadata: enhancedMetadata
             };
             renderCurrentThreadMessages();
           } else { 
-            console.error("Enhanced CoD API Response Data:", data); 
-            throw new Error("No content or tool_calls in Enhanced CoD API response."); 
+            console.error("API Response Data:", data); 
+            throw new Error("No content or tool_calls in API response."); 
           }
         }
       } catch (error) {
-        console.error("Error sending Enhanced CoD message:", error);
+        console.error("Error sending message:", error);
         const endTime = performance.now(); 
         const durationSeconds = ((endTime - startTime) / 1000).toFixed(2);
         let errorMessage = "Error: " + error.message;
@@ -1513,7 +1551,11 @@ Begin your response now:`;
             isPlaceholder: false, 
             timestamp: new Date(), 
             wordCount: 0, 
-            enhancedCoD: false,
+            reasoningMethod: REASONING_METHOD.toUpperCase(), 
+            thinking: null, 
+            answer: null, 
+            thinkingWordCount: 0, 
+            answerWordCount: 0,
             durationSeconds: durationSeconds, 
         };
         renderCurrentThreadMessages();
@@ -1575,7 +1617,7 @@ Begin your response now:`;
       if (enableWebSearchQuickToggle) { 
         btn.classList.add('bg-primary-500', 'text-white'); 
         btn.classList.remove('bg-dark-500', 'text-gray-300'); 
-        btn.title = "Tavily Web Search enabled for Enhanced CoD"; 
+        btn.title = "Tavily Web Search enabled"; 
       } else { 
         btn.classList.remove('bg-primary-500', 'text-white'); 
         btn.classList.add('bg-dark-500', 'text-gray-300'); 
@@ -1596,7 +1638,55 @@ Begin your response now:`;
       
       localStorage.setItem('enableWebSearchQuickToggle', enableWebSearchQuickToggle.toString()); 
       localStorage.setItem('enabledMcpTools', JSON.stringify(ENABLED_MCP_TOOLS));
-      showNotification(enableWebSearchQuickToggle ? 'Tavily search enabled for Enhanced CoD' : 'Tavily search disabled');
+      showNotification(enableWebSearchQuickToggle ? 'Tavily search enabled' : 'Tavily search disabled');
+    }
+
+    function toggleEnhancedCoDMode() {
+      const btn = document.getElementById('enhancedModeBtn');
+      const indicator = document.getElementById('enhancedModeIndicator');
+      const icon = document.getElementById('enhancedModeIcon');
+      const text = document.getElementById('enhancedModeText');
+      const inputContainer = document.getElementById('inputContainer');
+      
+      if (!btn || !indicator || !icon || !text) return;
+      
+      ENHANCED_COD_MODE = !ENHANCED_COD_MODE;
+      
+      if (ENHANCED_COD_MODE) {
+        // Enable Enhanced Mode
+        btn.classList.add('bg-enhanced-500', 'text-white');
+        btn.classList.remove('bg-dark-500', 'text-gray-300');
+        btn.title = "Enhanced CoD Mode enabled";
+        
+        icon.classList.add('bg-enhanced-400');
+        icon.classList.remove('bg-gray-500');
+        text.textContent = "Enhanced Mode";
+        
+        inputContainer.classList.add('enhanced-mode');
+        
+        showNotification('Enhanced CoD Mode enabled - Two-stage reasoning active');
+      } else {
+        // Disable Enhanced Mode
+        btn.classList.remove('bg-enhanced-500', 'text-white');
+        btn.classList.add('bg-dark-500', 'text-gray-300');
+        btn.title = "Enhanced CoD Mode disabled";
+        
+        icon.classList.remove('bg-enhanced-400');
+        icon.classList.add('bg-gray-500');
+        text.textContent = "Standard Mode";
+        
+        inputContainer.classList.remove('enhanced-mode');
+        
+        showNotification('Enhanced CoD Mode disabled - Standard reasoning active');
+      }
+      
+      // Update checkbox in settings
+      const enhancedToggle = document.getElementById('enhancedCoDToggle');
+      if (enhancedToggle) {
+        enhancedToggle.checked = ENHANCED_COD_MODE;
+      }
+      
+      localStorage.setItem('enhancedCoDMode', ENHANCED_COD_MODE.toString());
     }
 
     function setupTabNavigation() {
@@ -1629,144 +1719,128 @@ Begin your response now:`;
       });
     }
     
-    function setupSliders() {
-      document.querySelectorAll('input[type="range"]').forEach(slider => {
-        const valueDisplay = document.getElementById(`${slider.id}Value`);
-        if (valueDisplay) { 
-          valueDisplay.textContent = slider.value; 
-          updateRangeColor(slider); 
-          slider.addEventListener('input', () => { 
-            valueDisplay.textContent = slider.value; 
-            updateRangeColor(slider); 
-            
-            // Update CoD words per step in real-time
-            if (slider.id === 'codWordsPerStep') {
-              COD_WORDS_PER_STEP = parseInt(slider.value);
-            }
-          });
+    function setupCODOptionsDisplay() {
+      const reasoningRadios = document.getElementsByName('reasoningMethod'); 
+      const codOptionsDisplay = document.getElementById('codOptions'); 
+      if (!codOptionsDisplay) return;
+      
+      const updateDisplay = () => { 
+        const selectedReasoning = document.querySelector('input[name="reasoningMethod"]:checked'); 
+        if (selectedReasoning && selectedReasoning.value === 'cod') { 
+          codOptionsDisplay.style.display = 'block'; 
+        } else { 
+          codOptionsDisplay.style.display = 'none'; 
         }
-      });
-    }
-    
-    function updateRangeColor(slider) { 
-      const min = parseFloat(slider.min) || 0; 
-      const max = parseFloat(slider.max) || 1; 
-      const value = parseFloat(slider.value) || 0; 
-      const percent = ((value - min) / (max - min)) * 100; 
-      slider.style.setProperty('--value-percent', `${percent}%`);
-    }
-    
-    function openSettingsModal() {
-      // Set current values
-      setSliderAndValue("codWordsPerStep", COD_WORDS_PER_STEP);
-      setSliderAndValue("temp", TEMPERATURE); 
-      setSliderAndValue("topP", TOP_P); 
-      setSliderAndValue("topK", TOP_K); 
-      setSliderAndValue("maxTokens", MAX_TOKENS);
+      };
       
-      // Set checkboxes
-      document.getElementById('enableProblemDetection').checked = ENABLE_PROBLEM_DETECTION;
-      document.getElementById('enableDetailedAnalysis').checked = ENABLE_DETAILED_ANALYSIS;
-      document.getElementById('enablePartReflections').checked = ENABLE_PART_REFLECTIONS;
-      document.getElementById('enableMetaReflection').checked = ENABLE_META_REFLECTION;
+      updateDisplay(); 
+      reasoningRadios.forEach(radio => radio.addEventListener('change', updateDisplay));
       
-      const streamingToggle = document.getElementById('streamingToggle'); 
-      if (streamingToggle) streamingToggle.checked = ENABLE_STREAMING;
-      
-      setupMcpToolsOptions();
-      
-      const modal = document.getElementById("settingsModal"); 
-      if (modal) modal.style.display = "flex";
-      
-      // Set default tab to CoD Config
-      const tabButtons = document.querySelectorAll('.tab-btn'); 
-      const tabContents = document.querySelectorAll('.tab-content');
-      
-      tabContents.forEach(content => { 
-        content.classList.remove('active'); 
-        content.style.display = 'none'; 
-      });
-      
-      tabButtons.forEach(btn => { 
-        btn.classList.remove('bg-primary-500', 'text-white'); 
-        btn.classList.add('text-gray-400'); 
-      });
-      
-      const reasoningTabBtn = document.querySelector('.tab-btn[data-tab="reasoningTab"]'); 
-      const reasoningTab = document.getElementById('reasoningTab');
-      if (reasoningTabBtn && reasoningTab) { 
-        reasoningTabBtn.classList.add('bg-primary-500', 'text-white'); 
-        reasoningTabBtn.classList.remove('text-gray-400'); 
-        reasoningTab.classList.add('active'); 
-        reasoningTab.style.display = 'block'; 
+      const selfReflectionToggle = document.getElementById('selfReflectionToggle');
+      if (selfReflectionToggle) { 
+        selfReflectionToggle.addEventListener('change', () => { 
+          SELF_REFLECTION_ENABLED = selfReflectionToggle.checked; 
+          updateCoDPrompt(); 
+        }); 
+      }
+
+      // Enhanced CoD toggle
+      const enhancedCoDToggle = document.getElementById('enhancedCoDToggle');
+      if (enhancedCoDToggle) {
+        enhancedCoDToggle.addEventListener('change', () => {
+          ENHANCED_COD_MODE = enhancedCoDToggle.checked;
+          updateEnhancedModeUI();
+          updateCoDPrompt();
+        });
+      }
+
+      // Add CoD Word Count slider listener
+      const codWordCountSlider = document.getElementById('codWordCount');
+      if (codWordCountSlider) {
+        codWordCountSlider.addEventListener('input', () => {
+          COD_WORD_COUNT = parseInt(codWordCountSlider.value);
+          const valueDisplay = document.getElementById('codWordCountValue');
+          if (valueDisplay) valueDisplay.textContent = COD_WORD_COUNT;
+          updateRangeColor(codWordCountSlider);
+          updateCoDPrompt();
+        });
       }
     }
-    
-    function setSliderAndValue(id, value) { 
-      const slider = document.getElementById(id); 
-      const valueDisplay = document.getElementById(`${id}Value`); 
-      if (slider) { 
-        slider.value = value; 
-        updateRangeColor(slider); 
-      } 
-      if (valueDisplay) valueDisplay.textContent = value; 
-    }
-    
-    function closeSettingsModal() { 
-      const modal = document.getElementById("settingsModal"); 
-      if (modal) modal.style.display = "none"; 
-    }
-    
-    function saveSettings() {
-      // Enhanced CoD Settings
-      COD_WORDS_PER_STEP = parseInt(document.getElementById("codWordsPerStep").value);
-      ENABLE_PROBLEM_DETECTION = document.getElementById('enableProblemDetection').checked;
-      ENABLE_DETAILED_ANALYSIS = document.getElementById('enableDetailedAnalysis').checked;
-      ENABLE_PART_REFLECTIONS = document.getElementById('enablePartReflections').checked;
-      ENABLE_META_REFLECTION = document.getElementById('enableMetaReflection').checked;
+
+    function updateEnhancedModeUI() {
+      const btn = document.getElementById('enhancedModeBtn');
+      const indicator = document.getElementById('enhancedModeIndicator');
+      const icon = document.getElementById('enhancedModeIcon');
+      const text = document.getElementById('enhancedModeText');
+      const inputContainer = document.getElementById('inputContainer');
       
-      // Streaming
-      const streamingToggle = document.getElementById('streamingToggle'); 
-      if (streamingToggle) { 
-        ENABLE_STREAMING = streamingToggle.checked; 
-        localStorage.setItem('streamingEnabled', ENABLE_STREAMING.toString()); 
-      }
+      if (!btn || !indicator || !icon || !text) return;
       
-      // Model Parameters
-      TEMPERATURE = parseFloat(document.getElementById("temp").value); 
-      if (TEMPERATURE === 0 && document.getElementById("temp").min === "0") TEMPERATURE = 0.01;
-      TOP_P = parseFloat(document.getElementById("topP").value); 
-      TOP_K = parseInt(document.getElementById("topK").value); 
-      MAX_TOKENS = parseInt(document.getElementById("maxTokens").value);
-      
-      // Tools
-      ENABLED_MCP_TOOLS = []; 
-      document.querySelectorAll('input[name="mcp_tools"]').forEach(checkbox => { 
-        if (checkbox.checked) ENABLED_MCP_TOOLS.push(checkbox.value); 
-      });
-      
-      if (ENABLED_MCP_TOOLS.includes("tavily_search")) {
-        enableWebSearchQuickToggle = true; 
+      if (ENHANCED_COD_MODE) {
+        btn.classList.add('bg-enhanced-500', 'text-white');
+        btn.classList.remove('bg-dark-500', 'text-gray-300');
+        btn.title = "Enhanced CoD Mode enabled";
+        
+        icon.classList.add('bg-enhanced-400');
+        icon.classList.remove('bg-gray-500');
+        text.textContent = "Enhanced Mode";
+        
+        inputContainer.classList.add('enhanced-mode');
       } else {
-        enableWebSearchQuickToggle = false;
+        btn.classList.remove('bg-enhanced-500', 'text-white');
+        btn.classList.add('bg-dark-500', 'text-gray-300');
+        btn.title = "Enhanced CoD Mode disabled";
+        
+        icon.classList.remove('bg-enhanced-400');
+        icon.classList.add('bg-gray-500');
+        text.textContent = "Standard Mode";
+        
+        inputContainer.classList.remove('enhanced-mode');
+      }
+    }
+
+    function updateCoDPrompt() {
+      let basePrompt = `You are an AI assistant. Your goal is to solve problems by thinking step-by-step.
+When using Chain of Draft (CoD), adhere to the following structure for the thinking part of your response (before the '####' separator):
+
+1.  **Concise CoD Steps:** Use very short, concise steps (target ${COD_WORD_COUNT} words per step). Separate each CoD step with a period. Use mathematical notation where possible. Focus on key calculations and essential intermediate results.
+2.  **Deep Reflections:** After a few CoD steps, or before/after a critical calculation or decision point, insert a "DEEP REFLECTION X:" block (where X is 1, 2, or 3). You must include exactly three such deep reflection blocks.
+    *   These "DEEP REFLECTION" blocks are for a more thorough, verbose examination of your reasoning so far. They are NOT bound by the ${COD_WORD_COUNT} word limit.
+    *   In these blocks, explain your checks, verify intermediate results, discuss potential pitfalls, assess your confidence, and outline sub-goals.
+    *   Resume concise CoD steps after each deep reflection.
+
+Example structure of the thinking part:
+CoD Step 1. CoD Step 2. CoD Step 3.
+DEEP REFLECTION 1: [In this section, I will perform a detailed check of the work done in steps 1-3. I've calculated A and B. I need to ensure these are correct before proceeding to C. My confidence in A is high because it's a direct interpretation. B involved a multi-step calculation, so I'll double check that: (re-calculation or alternative check). My next sub-goal is to combine A and B to find D.]
+CoD Step 4. CoD Step 5.
+DEEP REFLECTION 2: [Here, I'll review steps 4 and 5. I've found D. Is this value reasonable in the context of the problem? Are there any edge cases I missed for D? I will verify the units. The next step involves using D to calculate E, which is the primary objective.]
+CoD Step 6. CoD Step 7.
+DEEP REFLECTION 3: [This is my final detailed review before concluding the thinking phase. I have E. I will quickly re-scan all CoD steps and previous deep reflections. Step 1 was X. Step 2 was Y. Reflection 1 confirmed Z. Step 4 was P. Reflection 2 confirmed Q. All seems consistent. I am now ready to formulate the final answer.]
+`;
+
+      const examplesCoDSteps = `
+Some examples of individual concise CoD steps (NOT deep reflections):
+Example Problem 1: Jason had 20 lollipops. He gave Denny some. Now Jason has 12. How many did he give?
+CoD Step: Initial lollipops: 20.
+CoD Step: Remaining lollipops: 12.
+CoD Step: Lollipops given: 20 - 12 = 8.
+
+Example Problem 2: Roger has $125. Spends $55. Receives $25. How much now?
+CoD Step: Starting money: $125.
+CoD Step: Spent on game: $55.
+CoD Step: Money after spending: $125 - $55 = $70.
+CoD Step: Birthday money received: $25.
+CoD Step: Final money: $70 + $25 = $95.
+`;
+
+      let finalAnswerInstruction = `
+After all CoD steps and all three DEEP REFLECTION blocks (and the optional brief final reflection, if applicable), write your final answer after the '####' separator. This final answer must be comprehensive and detailed, fully explaining the solution, the steps taken, and the reasoning behind them. Do not be brief in the final answer.`;
+
+      if (SELF_REFLECTION_ENABLED) { 
+        basePrompt += `\nJust before the '####' separator (after all CoD steps and all three DEEP REFLECTION blocks), add a very brief final self-check reflection starting with 'Reflection:'. This final brief reflection should be concise (around ${COD_WORD_COUNT} words), e.g., "Reflection: All calculations checked, units are consistent, answer seems logical."`;
       }
       
-      // Save to localStorage
-      localStorage.setItem("codWordsPerStep", COD_WORDS_PER_STEP.toString());
-      localStorage.setItem("enableProblemDetection", ENABLE_PROBLEM_DETECTION.toString());
-      localStorage.setItem("enableDetailedAnalysis", ENABLE_DETAILED_ANALYSIS.toString());
-      localStorage.setItem("enablePartReflections", ENABLE_PART_REFLECTIONS.toString());
-      localStorage.setItem("enableMetaReflection", ENABLE_META_REFLECTION.toString());
-      localStorage.setItem("temperature", TEMPERATURE.toString()); 
-      localStorage.setItem("topP", TOP_P.toString()); 
-      localStorage.setItem("topK", TOP_K.toString()); 
-      localStorage.setItem("maxTokens", MAX_TOKENS.toString()); 
-      localStorage.setItem("enabledMcpTools", JSON.stringify(ENABLED_MCP_TOOLS)); 
-      localStorage.setItem("enableWebSearchQuickToggle", enableWebSearchQuickToggle.toString());
-      
-      updateWebSearchButtonAppearance(); 
-      closeSettingsModal(); 
-      showNotification("Enhanced CoD settings saved");
+      PROMPTS.cod = basePrompt + examplesCoDSteps + finalAnswerInstruction;
     }
     
     function setupMcpToolsOptions() {
@@ -1796,6 +1870,156 @@ Begin your response now:`;
       });
     }
     
+    function setupSliders() {
+      document.querySelectorAll('input[type="range"]').forEach(slider => {
+        const valueDisplay = document.getElementById(`${slider.id}Value`);
+        if (valueDisplay) { 
+          valueDisplay.textContent = slider.value; 
+          updateRangeColor(slider); 
+          slider.addEventListener('input', () => { 
+            valueDisplay.textContent = slider.value; 
+            updateRangeColor(slider); 
+          });
+        }
+      });
+    }
+    
+    function updateRangeColor(slider) { 
+      const min = parseFloat(slider.min) || 0; 
+      const max = parseFloat(slider.max) || 1; 
+      const value = parseFloat(slider.value) || 0; 
+      const percent = ((value - min) / (max - min)) * 100; 
+      slider.style.setProperty('--value-percent', `${percent}%`);
+    }
+    
+    function openSettingsModal() {
+      const reasoningRadio = document.getElementById(`${REASONING_METHOD}Reasoning`); 
+      if (reasoningRadio) reasoningRadio.checked = true;
+      
+      const selfReflectionToggle = document.getElementById('selfReflectionToggle'); 
+      if (selfReflectionToggle) selfReflectionToggle.checked = SELF_REFLECTION_ENABLED;
+
+      const enhancedCoDToggle = document.getElementById('enhancedCoDToggle');
+      if (enhancedCoDToggle) enhancedCoDToggle.checked = ENHANCED_COD_MODE;
+      
+      setSliderAndValue("temp", TEMPERATURE); 
+      setSliderAndValue("topP", TOP_P); 
+      setSliderAndValue("topK", TOP_K); 
+      setSliderAndValue("maxTokens", MAX_TOKENS); 
+      setSliderAndValue("presencePenalty", PRESENCE_PENALTY); 
+      setSliderAndValue("frequencyPenalty", FREQUENCY_PENALTY);
+      setSliderAndValue("codWordCount", COD_WORD_COUNT);
+      
+      setupCODOptionsDisplay(); 
+      setupMcpToolsOptions();
+      
+      const streamingToggle = document.getElementById('streamingToggle'); 
+      if (streamingToggle) streamingToggle.checked = ENABLE_STREAMING;
+      
+      const modal = document.getElementById("settingsModal"); 
+      if (modal) modal.style.display = "flex";
+      
+      // Set default tab to Parameters
+      const tabButtons = document.querySelectorAll('.tab-btn'); 
+      const tabContents = document.querySelectorAll('.tab-content');
+      
+      tabContents.forEach(content => { 
+        content.classList.remove('active'); 
+        content.style.display = 'none'; 
+      });
+      
+      tabButtons.forEach(btn => { 
+        btn.classList.remove('bg-primary-500', 'text-white'); 
+        btn.classList.add('text-gray-400'); 
+      });
+      
+      const parametersTabBtn = document.querySelector('.tab-btn[data-tab="parametersTab"]'); 
+      const parametersTab = document.getElementById('parametersTab');
+      if (parametersTabBtn && parametersTab) { 
+        parametersTabBtn.classList.add('bg-primary-500', 'text-white'); 
+        parametersTabBtn.classList.remove('text-gray-400'); 
+        parametersTab.classList.add('active'); 
+        parametersTab.style.display = 'block'; 
+      }
+    }
+    
+    function setSliderAndValue(id, value) { 
+      const slider = document.getElementById(id); 
+      const valueDisplay = document.getElementById(`${id}Value`); 
+      if (slider) { 
+        slider.value = value; 
+        updateRangeColor(slider); 
+      } 
+      if (valueDisplay) valueDisplay.textContent = value; 
+    }
+    
+    function closeSettingsModal() { 
+      const modal = document.getElementById("settingsModal"); 
+      if (modal) modal.style.display = "none"; 
+    }
+    
+    function saveSettings() {
+      const streamingToggle = document.getElementById('streamingToggle'); 
+      if (streamingToggle) { 
+        ENABLE_STREAMING = streamingToggle.checked; 
+        localStorage.setItem('streamingEnabled', ENABLE_STREAMING.toString()); 
+      }
+      
+      const reasoningRadios = document.getElementsByName("reasoningMethod"); 
+      for (const radio of reasoningRadios) {
+        if (radio.checked) REASONING_METHOD = radio.value;
+      }
+      
+      const selfReflectionToggle = document.getElementById('selfReflectionToggle'); 
+      if (selfReflectionToggle) SELF_REFLECTION_ENABLED = selfReflectionToggle.checked;
+
+      const enhancedCoDToggle = document.getElementById('enhancedCoDToggle');
+      if (enhancedCoDToggle) {
+        ENHANCED_COD_MODE = enhancedCoDToggle.checked;
+        updateEnhancedModeUI();
+      }
+
+      const codWordCountSlider = document.getElementById('codWordCount');
+      if (codWordCountSlider) COD_WORD_COUNT = parseInt(codWordCountSlider.value);
+      
+      TEMPERATURE = parseFloat(document.getElementById("temp").value); 
+      if (TEMPERATURE === 0 && document.getElementById("temp").min === "0") TEMPERATURE = 0.01;
+      TOP_P = parseFloat(document.getElementById("topP").value); 
+      TOP_K = parseInt(document.getElementById("topK").value); 
+      PRESENCE_PENALTY = parseFloat(document.getElementById("presencePenalty").value); 
+      FREQUENCY_PENALTY = parseFloat(document.getElementById("frequencyPenalty").value); 
+      MAX_TOKENS = parseInt(document.getElementById("maxTokens").value);
+      
+      ENABLED_MCP_TOOLS = []; 
+      document.querySelectorAll('input[name="mcp_tools"]').forEach(checkbox => { 
+        if (checkbox.checked) ENABLED_MCP_TOOLS.push(checkbox.value); 
+      });
+      
+      if (ENABLED_MCP_TOOLS.includes("tavily_search")) {
+        enableWebSearchQuickToggle = true; 
+      } else {
+        enableWebSearchQuickToggle = false;
+      }
+      
+      localStorage.setItem("reasoningMethod", REASONING_METHOD); 
+      localStorage.setItem("selfReflectionEnabled", SELF_REFLECTION_ENABLED.toString()); 
+      localStorage.setItem("enhancedCoDMode", ENHANCED_COD_MODE.toString());
+      localStorage.setItem("codWordCount", COD_WORD_COUNT.toString());
+      localStorage.setItem("temperature", TEMPERATURE.toString()); 
+      localStorage.setItem("topP", TOP_P.toString()); 
+      localStorage.setItem("topK", TOP_K.toString()); 
+      localStorage.setItem("presencePenalty", PRESENCE_PENALTY.toString()); 
+      localStorage.setItem("frequencyPenalty", FREQUENCY_PENALTY.toString()); 
+      localStorage.setItem("maxTokens", MAX_TOKENS.toString()); 
+      localStorage.setItem("enabledMcpTools", JSON.stringify(ENABLED_MCP_TOOLS)); 
+      localStorage.setItem("enableWebSearchQuickToggle", enableWebSearchQuickToggle.toString());
+      
+      updateCoDPrompt(); 
+      updateWebSearchButtonAppearance(); 
+      closeSettingsModal(); 
+      showNotification("Settings saved");
+    }
+    
     function updateWebSearchButtonAppearance() {
       const btn = document.getElementById('webSearchBtn'); 
       if (!btn) return;
@@ -1803,7 +2027,7 @@ Begin your response now:`;
       if (enableWebSearchQuickToggle) { 
         btn.classList.add('bg-primary-500', 'text-white'); 
         btn.classList.remove('bg-dark-500', 'text-gray-300'); 
-        btn.title = "Tavily Web Search enabled for Enhanced CoD"; 
+        btn.title = "Tavily Web Search enabled"; 
       } else { 
         btn.classList.remove('bg-primary-500', 'text-white'); 
         btn.classList.add('bg-dark-500', 'text-gray-300'); 
@@ -1863,23 +2087,29 @@ Begin your response now:`;
     }
     
     function loadPersistedSettings() {
-      // Enhanced CoD Settings
-      const codWords = localStorage.getItem("codWordsPerStep"); 
-      if (codWords) COD_WORDS_PER_STEP = parseInt(codWords);
+      REASONING_METHOD = localStorage.getItem("reasoningMethod") || "cod";
       
-      const problemDetection = localStorage.getItem("enableProblemDetection"); 
-      if (problemDetection !== null) ENABLE_PROBLEM_DETECTION = problemDetection === "true";
+      const selfReflection = localStorage.getItem("selfReflectionEnabled"); 
+      if (selfReflection !== null) {
+        SELF_REFLECTION_ENABLED = selfReflection === "true"; 
+      } else {
+        SELF_REFLECTION_ENABLED = true; 
+      }
+
+      const enhancedCoD = localStorage.getItem("enhancedCoDMode");
+      if (enhancedCoD !== null) {
+        ENHANCED_COD_MODE = enhancedCoD === "true";
+      } else {
+        ENHANCED_COD_MODE = false;
+      }
+
+      const codWordCount = localStorage.getItem("codWordCount");
+      if (codWordCount) {
+        COD_WORD_COUNT = parseInt(codWordCount);
+      } else {
+        COD_WORD_COUNT = 12;
+      }
       
-      const detailedAnalysis = localStorage.getItem("enableDetailedAnalysis"); 
-      if (detailedAnalysis !== null) ENABLE_DETAILED_ANALYSIS = detailedAnalysis === "true";
-      
-      const partReflections = localStorage.getItem("enablePartReflections"); 
-      if (partReflections !== null) ENABLE_PART_REFLECTIONS = partReflections === "true";
-      
-      const metaReflection = localStorage.getItem("enableMetaReflection"); 
-      if (metaReflection !== null) ENABLE_META_REFLECTION = metaReflection === "true";
-      
-      // Model Parameters
       const temp = localStorage.getItem("temperature"); 
       if (temp) TEMPERATURE = parseFloat(temp);
       
@@ -1887,15 +2117,32 @@ Begin your response now:`;
       if (topP) TOP_P = parseFloat(topP);
       
       const topK = localStorage.getItem("topK"); 
-      if (topK) TOP_K = parseInt(topK);
+      if (topK) {
+        TOP_K = parseInt(topK); 
+      } else {
+        TOP_K = 40;
+      }
+      
+      const presencePenalty = localStorage.getItem("presencePenalty"); 
+      if (presencePenalty) PRESENCE_PENALTY = parseFloat(presencePenalty);
+      
+      const frequencyPenalty = localStorage.getItem("frequencyPenalty"); 
+      if (frequencyPenalty) FREQUENCY_PENALTY = parseFloat(frequencyPenalty);
       
       const maxTokens = localStorage.getItem("maxTokens"); 
-      if (maxTokens) MAX_TOKENS = parseInt(maxTokens);
+      if (maxTokens) {
+        MAX_TOKENS = parseInt(maxTokens); 
+      } else {
+        MAX_TOKENS = 8192;
+      }
       
       const streaming = localStorage.getItem('streamingEnabled'); 
-      if (streaming !== null) ENABLE_STREAMING = streaming === 'true';
+      if (streaming !== null) {
+        ENABLE_STREAMING = streaming === 'true'; 
+      } else {
+        ENABLE_STREAMING = true;
+      }
       
-      // Tools
       const mcpTools = localStorage.getItem('enabledMcpTools'); 
       if (mcpTools) { 
         try { 
@@ -1903,10 +2150,18 @@ Begin your response now:`;
         } catch(e) { 
           ENABLED_MCP_TOOLS = []; 
         }
+      } else { 
+        ENABLED_MCP_TOOLS = []; 
       }
       
       const webSearchToggle = localStorage.getItem('enableWebSearchQuickToggle'); 
-      if (webSearchToggle !== null) enableWebSearchQuickToggle = webSearchToggle === 'true';
+      if (webSearchToggle !== null) {
+        enableWebSearchQuickToggle = webSearchToggle === 'true'; 
+      } else {
+        enableWebSearchQuickToggle = false;
+      }
+      
+      updateCoDPrompt(); 
     }
     
     function initApp() { 
@@ -1914,12 +2169,8 @@ Begin your response now:`;
       createNewThread(); 
       initEventListeners(); 
       initMobileNavigation(); 
-      updateWebSearchButtonAppearance(); 
-      
-      // Show welcome message about Enhanced CoD
-      setTimeout(() => {
-        showNotification("Enhanced Chain of Draft ready! Try a complex math, coding, or logic problem.", 5000);
-      }, 1000);
+      updateWebSearchButtonAppearance();
+      updateEnhancedModeUI();
     }
     
     function initEventListeners() {
@@ -1953,6 +2204,7 @@ Begin your response now:`;
       });
       
       addListener("webSearchBtn", "click", toggleWebSearchQuickButton);
+      addListener("enhancedModeBtn", "click", toggleEnhancedCoDMode);
       
       const textarea = document.getElementById('userInput');
       if (textarea) { 
@@ -1992,6 +2244,8 @@ Begin your response now:`;
       
       setTimeout(() => { 
         setupTabNavigation(); 
+        setupCODOptionsDisplay(); 
+        setupMcpToolsOptions(); 
         setupSliders(); 
       }, 100);
     }
